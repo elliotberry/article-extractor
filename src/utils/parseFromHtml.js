@@ -2,11 +2,8 @@
 
 import { stripTags, truncate, unique, pipe } from 'bellajs'
 
-import { purify, cleanify } from './html.js'
-
 import {
   isValid as isValidUrl,
-  purify as purifyUrl,
   absolutify as absolutifyUrl,
   normalize as normalizeUrls,
   chooseBestUrl,
@@ -21,8 +18,6 @@ import extractWithReadability, {
 
 import { execPreParser, execPostParser } from './transformation.js'
 
-import getTimeToRead from './getTimeToRead.js'
-
 const summarize = (desc, txt, threshold, maxlen) => { // eslint-disable-line
   return desc.length > threshold
     ? desc
@@ -30,7 +25,7 @@ const summarize = (desc, txt, threshold, maxlen) => { // eslint-disable-line
 }
 
 export default async (inputHtml, inputUrl = '', parserOptions = {}) => {
-  const html = purify(inputHtml)
+  let html = inputHtml
   const meta = extractMetaData(html)
   let title = meta.title
 
@@ -46,7 +41,7 @@ export default async (inputHtml, inputUrl = '', parserOptions = {}) => {
   } = meta
 
   const {
-    wordsPerMinute = 300,
+
     descriptionTruncateLen = 210,
     descriptionLengthThreshold = 180,
     contentLengthThreshold = 200,
@@ -64,7 +59,7 @@ export default async (inputHtml, inputUrl = '', parserOptions = {}) => {
   const links = unique(
     [url, shortlink, amphtml, canonical, inputUrl]
       .filter(isValidUrl)
-      .map(purifyUrl)
+
   )
 
   if (!links.length) {
@@ -86,9 +81,6 @@ export default async (inputHtml, inputUrl = '', parserOptions = {}) => {
     },
     (input) => {
       return input ? execPostParser(input, links) : null
-    },
-    (input) => {
-      return input ? cleanify(input) : null
     }
   )
 
@@ -122,6 +114,5 @@ export default async (inputHtml, inputUrl = '', parserOptions = {}) => {
     author,
     source: getDomain(bestUrl),
     published,
-    ttr: getTimeToRead(textContent, wordsPerMinute),
   }
 }
