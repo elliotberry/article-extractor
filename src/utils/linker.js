@@ -1,7 +1,4 @@
-// utils -> linker
-
 import { DOMParser } from 'linkedom'
-
 import { findBestMatch } from 'string-similarity'
 
 export const isValid = (url = '') => {

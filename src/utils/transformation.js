@@ -1,6 +1,4 @@
-// utils --> transformation.js
-
-import { isArray, isFunction, clone } from 'bellajs'
+import { isArray, isFunction, clone } from './bella.js'
 import { DOMParser } from 'linkedom'
 
 const transformations = []

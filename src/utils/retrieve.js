@@ -1,6 +1,4 @@
-// utils -> retrieve
-
-import fetch from 'cross-fetch'
+import fetch from 'node-fetch'
 
 const profetch = async (url, proxy = {}) => {
   const {

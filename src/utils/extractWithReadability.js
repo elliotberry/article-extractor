@@ -2,7 +2,7 @@
 
 import { Readability } from '@mozilla/readability'
 import { DOMParser } from 'linkedom'
-import { isString } from 'bellajs'
+import { isString } from './bella.js'
 
 export default (html, inputUrl = '') => {
   if (!isString(html)) {
