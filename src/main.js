@@ -27,8 +27,11 @@ export const extract = async (input, parserOptions = {}, fetchOptions = {}) => {
   return parseFromHtml(html, input, parserOptions)
 }
 
-export const extractFromHtml = async (html, url, parserOptions = {}) => {
-  return parseFromHtml(html, url, parserOptions)
+export const extractFromHtml = async ({ html, url = '', parserOptions = {} }) => {
+  if (!html || typeof html !== "string") {
+    throw new Error("HTML string needed!")
+  }
+  return parseFromHtml({ html, url, parserOptions })
 }
 
 export { addTransformations, removeTransformations } from './utils/transformation.js'
