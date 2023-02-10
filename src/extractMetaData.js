@@ -1,5 +1,3 @@
-// utils -> extractMetaData
-
 import { DOMParser } from 'linkedom'
 
 /**

@@ -68,7 +68,31 @@ const unique = (arr = []) => {
 const fnSort = (a, b) => {
   return a > b ? 1 : a < b ? -1 : 0;
 };
-
+export const stripTags = (s) => {
+  return toString(s).replace(/(<([^>]+)>)/ig, '').trim()
+}
+export const truncate = (s, len = 140) => {
+  const txt = toString(s)
+  const txtlen = txt.length
+  if (txtlen <= len) {
+    return txt
+  }
+  const subtxt = txt.substring(0, len).trim()
+  const subtxtArr = subtxt.split(' ')
+  const subtxtLen = subtxtArr.length
+  if (subtxtLen > 1) {
+    subtxtArr.pop()
+    return subtxtArr.map(word => word.trim()).join(' ') + '...'
+  }
+  return subtxt.substring(0, len - 3) + '...'
+}
+export const escapeHTML = (s) => {
+  return toString(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
 const sort = (arr = [], sorting = null) => {
   const tmp = [...arr];
   const fn = sorting || fnSort;
@@ -180,5 +204,5 @@ const pipe = (...fns) => {
   return fns.reduce((f, g) => (x) => g(f(x)))
 }
 export {
-  pipe, clone, copies, unique, sort, sortBy, shuffle, pick, ob2Str, isInteger, isArray, isString, isNumber, isBoolean, isNull, isUndefined, isNil, isFunction, isObject, isDate;
+  pipe, clone, copies, unique, sort, sortBy, shuffle, pick, ob2Str, isInteger, isArray, isString, isNumber, isBoolean, isNull, isUndefined, isNil, isFunction, isObject, isDate
 }

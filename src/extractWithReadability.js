@@ -1,5 +1,3 @@
-// utils/extractWithReadability
-
 import { Readability } from '@mozilla/readability'
 import { DOMParser } from 'linkedom'
 import { isString } from './bella.js'
@@ -10,7 +8,10 @@ export default (html, inputUrl = '') => {
   }
   const doc = new DOMParser().parseFromString(html, 'text/html')
   const base = doc.createElement('base')
-  base.setAttribute('href', inputUrl)
+  if (inputUrl) {
+    base.setAttribute('href', inputUrl)
+  }
+  
   doc.head.appendChild(base)
   const reader = new Readability(doc)
   const result = reader.parse() ?? {}
