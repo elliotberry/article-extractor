@@ -1,4 +1,4 @@
-import {stripTags, truncate, unique, pipe} from './bella.js';
+import {stripTags, truncate, unique} from './bella.js';
 
 import {purify, cleanify} from './html.js';
 
@@ -16,30 +16,34 @@ const summarize = (desc, txt, threshold, maxlen) => {
   return desc.length > threshold ? desc : truncate(txt, maxlen).replace(/\n/g, ' ');
 };
 
-const urlBullshit = (urls, title) => {
-  console.log(urls);
-  // gather urls to choose the best url later
-  const links = unique(urls.filter(isValidUrl).map(purifyUrl));
-  // choose the best url, which one looks like title the most
-  const bestUrl = chooseBestUrl(links, title);
-  return {bestUrl, links};
+
+
+const optionsdefault = {
+  wordsPerMinute: 300,
+  descriptionTruncateLen: 210,
+  descriptionLengthThreshold: 180,
+  contentLengthThreshold: 200,
+  titleLengthThreshold: 50,
+  titleTruncateLen: 50,
+  imageLengthThreshold: 50,
+  imageTruncateLen: 50,
+  authorLengthThreshold: 50,
+  authorTruncateLen: 50,
+  publishedLengthThreshold: 50,
+  purify: false,
 };
 
-const parseFromHtml = async ({html, url, parserOptions}) => {
-  html = await purify(html);
-  const meta = await extractMetaData(html);
-
-  const {shortlink, amphtml, canonical, description: metaDesc, image: metaImg, author, published} = meta;
-  const urlList = unique([url, ...shortlink, ...amphtml, ...canonical].filter(isValidUrl).map(purifyUrl));
-  console.log(urlList);
-
-  const {wordsPerMinute = 300, descriptionTruncateLen = 210, descriptionLengthThreshold = 180, contentLengthThreshold = 200} = parserOptions;
-
+const getTitle = async (meta, html) => {
   let title = meta.title || '';
 
   if (title === '') {
-    title = extractTitleWithReadability(html);
+    title = await extractTitleWithReadability(html);
   }
+  return title;
+};
+
+const urlWitchcraft = async (url, meta, title) => {
+  const urlList = [url, ...meta.shortlink, ...meta.amphtml, ...meta.canonical];
 
   let bestUrl = '';
   let links = [];
@@ -49,64 +53,43 @@ const parseFromHtml = async ({html, url, parserOptions}) => {
       bestUrl = chooseBestUrl(links, title);
     }
   }
+  return {bestUrl, links};
+};
+const parseFromHtml = async ({html, url, parserOptions}) => {
+  //get options and mix with default options
+  parserOptions = Object.assign({}, optionsdefault, parserOptions);
+  const {wordsPerMinute, descriptionTruncateLen, descriptionLengthThreshold, contentLengthThreshold} = parserOptions;
 
-  const fns = pipe(
-    input => {
-      try {
-        if (bestUrl) {
-          return normalizeUrls(input, bestUrl);
-        }
-        else {
-          return input;
-        }
-        
-      } catch (e) {
-        console.log(e);
-        return input;
-      }
-    },
-    input => {
-      try {
-        return execPreParser(input, links);
-      } catch (e) {
-        console.log(e);
-        return input;
-      }
-    },
-    input => {
-      try {
-        return extractWithReadability(input, bestUrl);
-      } catch (e) {
-        console.log(e);
-      }
-    },
-    input => {
-      try {
-        return input ? execPostParser(input, links) : null;
-      } catch (e) {
-        console.log(e);
-        return input;
-      }
-    },
-    input => {
-      try {
-        return cleanify(input);
-      } catch (e) {
-        console.log(e);
-        return input;
-      }
-    },
-  );
-
-  const content = fns(html);
-
-  if (!content) {
-    return null;
+  //purify HTML
+  if (parserOptions.purify) {
+    html = await purify(html);
   }
+
+  const meta = await extractMetaData(html);
+
+  const {description: metaDesc, image: metaImg, author, published} = meta;
+  const title = await getTitle(meta, html);
+  const {bestUrl, links} = await urlWitchcraft(url, meta, title);
+  console.log(`bestUrl: ${bestUrl}, links: ${links}, title: ${title}, metaDesc: ${metaDesc}, metaImg: ${metaImg}, author: ${author}, published: ${published}`);
+
+
+
+  async function pipey(input) {
+     
+          input = await normalizeUrls(input, bestUrl);
+          input = await execPreParser(input, links);
+          input = await extractWithReadability(input, bestUrl);
+          input = await execPostParser(input, links);
+          input = await cleanify(input);
+          return input;
+  }
+ 
+
+  const content = await pipey(html);
 
   const textContent = stripTags(content);
   if (textContent.length < contentLengthThreshold) {
-    return null;
+    // return null;
   }
 
   const description = summarize(metaDesc, textContent, descriptionLengthThreshold, descriptionTruncateLen);

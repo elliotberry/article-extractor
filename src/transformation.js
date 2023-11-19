@@ -1,6 +1,10 @@
-import { isArray, isFunction, clone } from './bella.js'
+import { isArray, isFunction } from './bella.js'
 import { DOMParser } from 'linkedom'
+const clone = (obj) => {
 
+    return JSON.parse(JSON.stringify(obj))
+
+}
 const transformations = []
 
 const add = (tn) => {

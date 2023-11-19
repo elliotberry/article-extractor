@@ -1,11 +1,9 @@
 import { Readability } from '@mozilla/readability'
 import { DOMParser } from 'linkedom'
-import { isString } from './bella.js'
+
 
 export default (html, inputUrl = '') => {
-  if (!isString(html)) {
-    return null
-  }
+
   const doc = new DOMParser().parseFromString(html, 'text/html')
   const base = doc.createElement('base')
   if (inputUrl) {
@@ -19,9 +17,7 @@ export default (html, inputUrl = '') => {
 }
 
 export function extractTitleWithReadability (html) {
-  if (!isString(html)) {
-    return null
-  }
+ 
   const doc = new DOMParser().parseFromString(html, 'text/html')
   const reader = new Readability(doc)
   return reader._getArticleTitle() || null
