@@ -6,6 +6,6 @@
   },
   "dependencies": {
     "@extractus/article-extractor": "latest",
-    "hono": "^2.1.4"
+    "hono": "^4.6.5"
   }
 }
